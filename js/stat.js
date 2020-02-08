@@ -33,10 +33,11 @@ function getMaxElementOfArray(array) {
 }
 
 // Рисует текст на канвасе с результатом игры
-function renderResultText(ctx) {
+function renderCongratulationsText(ctx) {
   ctx.fillStyle = '#000';
   ctx.font = '16px PT Mono';
   ctx.textBaseline = 'hanging';
+
   ctx.fillText('Ура! Вы победили!', CLOUD_X + GAP, CLOUD_Y + GAP);
   ctx.fillText('Список результатов:', CLOUD_X + GAP, CLOUD_Y + GAP + TEXT_HEIGHT);
 }
@@ -44,69 +45,63 @@ function renderResultText(ctx) {
 // Приводит количество элементов большего массива к количеству элементов меньшего массива, удаляя лишние элементы
 function doEquivalentLengthOfArrays(firstArray, secondArray) {
   if (firstArray.length > secondArray.length) {
-    firstArray.splice(secondArray.length - 1, firstArray.length - secondArray.length);
+    firstArray.length = secondArray.length;
   } else {
-    secondArray.splice(firstArray.length - 1, secondArray.length - firstArray.length);
+    secondArray.length = firstArray.length;
   }
-}
-
-// Возвращает горизонтальные отступы для выравнивания по центру элементов на канвасе
-function getHorizontalGap(array) {
-  var horizontalGap = (CLOUD_WIDTH - BAR_GAP * (array.length - 1) - BAR_WIDTH * array.length) / 2;
-
-  return horizontalGap;
 }
 
 // Рисует имена игроков на канвасе под колонками
-function renderPlayersNames(ctx, names, gap) {
-  ctx.fillStyle = '#000';
-  ctx.font = '16px PT Mono';
-  ctx.textBaseline = 'bottom';
-
-  for (var i = 0; i < names.length; i++) {
-    ctx.fillText(names[i], CLOUD_X + gap + (BAR_GAP + BAR_WIDTH) * i, CLOUD_HEIGHT + CLOUD_Y - GAP);
-  }
-}
-
-// Рисует результаты игроков на канвасе над колонками
-function renderPlayersResults(ctx, results, maxTime, gap) {
-  ctx.fillStyle = '#000';
-  ctx.font = '16px PT Mono';
-  ctx.textBaseline = 'bottom';
-
-  for (var i = 0; i < results.length; i++) {
-    ctx.fillText(Math.round(results[i]), CLOUD_X + gap + (BAR_GAP + BAR_WIDTH) * i, CLOUD_HEIGHT - GAP - TEXT_HEIGHT - results[i] * (HISTOGRAM_HEIGHT - TEXT_HEIGHT) / maxTime);
-  }
+function renderPlayerName(ctx, name, xCoordinate) {
+  ctx.fillText(name, xCoordinate, CLOUD_HEIGHT + CLOUD_Y - GAP);
 }
 
 // Рисует колонки на канвасе с высотой, пропорциональной результу игрока
-function renderBars(ctx, names, results, maxTime, gap) {
-  for (var i = 0; i < names.length; i++) {
-    var barColor = names[i] === 'Вы' ? 'rgba(255, 0, 0, 1)' : getRandomSaturationColor(240, 50);
-    var barHeight = results[i] * (HISTOGRAM_HEIGHT - TEXT_HEIGHT) / maxTime;
+function renderBar(ctx, xCoordinate, height, name) {
+  var barColor = name === 'Вы' ? 'rgba(255, 0, 0, 1)' : getRandomSaturationColor(240, 50);
 
-    ctx.fillStyle = barColor;
-    ctx.fillRect(CLOUD_X + gap + (BAR_GAP + BAR_WIDTH) * i, CLOUD_HEIGHT - GAP - TEXT_HEIGHT * 0.7 - barHeight, BAR_WIDTH, barHeight);
+  ctx.fillStyle = barColor;
+  ctx.fillRect(xCoordinate, CLOUD_HEIGHT - TEXT_HEIGHT * 0.7 - height - GAP, BAR_WIDTH, height);
+}
+
+// Рисует результаты игроков на канвасе над колонками
+function renderPlayerResult(ctx, result, xCoordinate, barHeight) {
+  ctx.fillText(result, xCoordinate, CLOUD_HEIGHT - TEXT_HEIGHT - barHeight - GAP);
+}
+
+// Рисует результаты икроков на канвасе: числовой результат, колонку, пропорциональную отношению результата игрока к наибольшему результату, и имя игрока
+function renderResultBlocks(ctx, amount, players, times, maxTime) {
+  ctx.fillStyle = '#000';
+  ctx.font = '16px PT Mono';
+  ctx.textBaseline = 'bottom';
+
+  for (var i = 0; i < amount; i++) {
+    var xCoordinate = CLOUD_X + GAP + (BAR_GAP + BAR_WIDTH) * i;
+    var barHeight = times[i] * (HISTOGRAM_HEIGHT - TEXT_HEIGHT) / maxTime;
+    var playerResult = Math.round(times[i]);
+
+    renderPlayerName(ctx, players[i], xCoordinate);
+    renderBar(ctx, xCoordinate, barHeight, players[i]);
+    renderPlayerResult(ctx, playerResult, xCoordinate, barHeight);
   }
 }
 
-window.renderStatistics = function (ctx, players, times) {
+// Выводит финальный блок статистики
+window.renderStatistics = function (ctx, names, times) {
 
-  if (players.length > 0 && times.length > 0) {
+  if (names.length > 0 && times.length > 0) {
     renderCloud(ctx, CLOUD_X + CLOUD_GAP, CLOUD_Y + CLOUD_GAP, 'rgba(0, 0, 0, 0.7)');
     renderCloud(ctx, CLOUD_X, CLOUD_Y, '#fff');
 
-    if (players.length !== times.length) {
-      doEquivalentLengthOfArrays(players, times);
+    if (names.length !== times.length) {
+      doEquivalentLengthOfArrays(names, times);
     }
 
-    var maxTime = getMaxElementOfArray(times);
-    var horizontalGap = getHorizontalGap(players);
+    renderCongratulationsText(ctx);
 
-    renderResultText(ctx);
-    renderPlayersResults(ctx, times, maxTime, horizontalGap);
-    renderBars(ctx, players, times, maxTime, horizontalGap);
-    renderPlayersNames(ctx, players, horizontalGap);
+    var maxTime = getMaxElementOfArray(times);
+
+    renderResultBlocks(ctx, names.length, names, times, maxTime);
 
   } else {
     this.alert('Ещё никто не смог победить Газебо, или результаты не сохранились :(');
