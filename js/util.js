@@ -5,6 +5,9 @@
   var ENTER_KEY = 'Enter';
 
   window.util = {
+    getRandomNumber: function(min, max) {
+      return Math.floor(min + Math.random() * (max + 1 - min));
+    },
     isEscEvent: function (evt, action) {
       if (evt.key === ESC_KEY) {
         action();
