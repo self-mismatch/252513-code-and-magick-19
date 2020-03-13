@@ -6,10 +6,6 @@
     save: 'https://js.dump.academy/code-and-magick'
   };
 
-  var StatusCode = {
-    OK: 200
-  };
-
   window.backend = {
     load: function (onLoad, onError) {
       var xhr = new XMLHttpRequest();

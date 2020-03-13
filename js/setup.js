@@ -51,13 +51,12 @@
 
   var setupForm = setup.querySelector('.setup-wizard-form');
 
-  function onWizardSaveSuccess(response) {
+  function onWizardSaveSuccess() {
     setup.classList.add('hidden');
-    console.log(response);
   }
 
   function onWizardSaveError(errorText) {
-    renderErrorMessage(errorText)
+    renderErrorMessage(errorText);
   }
 
   function onSetupFormSubmit(evt) {
